@@ -70,7 +70,6 @@ jobs:
           echo "HOME=${HOME}"
           ls -l /
           ls -l /root/
-          ls -l /root/rpmbuild/
           ls -l ~/
 
       - name: build rpm
