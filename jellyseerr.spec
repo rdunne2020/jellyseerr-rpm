@@ -31,7 +31,7 @@ Jellyseerr is a free and open source software application for managing requests 
 %build
 # Install yarn locally, need to allow legacy deps
 npm i -S --legacy-peer-deps  yarn
-PATH=%{_builddir}%{name}-%{version}/node_modules/.bin/:${PATH}
+PATH=%{_builddir}/%{name}-%{version}/node_modules/.bin/:${PATH}
 
 # Install packages
 CYPRESS_INSTALL_BINARY=0 yarn install --frozen-lockfile --network-timeout 1000000
