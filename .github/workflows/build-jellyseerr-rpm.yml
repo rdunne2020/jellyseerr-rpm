@@ -65,6 +65,14 @@ jobs:
       - name: download the jellyseer source
         run: spectool -g -R jellyseerr.spec
 
+      - name: Debug
+        run: |
+          echo "HOME=${HOME}"
+          ls -l /
+          ls -l /root/
+          ls -l /root/rpmbuild/
+          ls -l ~/
+
       - name: build rpm
         run: rpmbuild --define "_topdir /root/rpmbuild/" -ba SPECS/jellyseerr.spec
 
