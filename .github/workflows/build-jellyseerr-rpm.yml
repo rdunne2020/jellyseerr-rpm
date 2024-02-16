@@ -22,7 +22,7 @@ jobs:
         fedora-version: [38]
     # Spin up ubuntu runner, but use a fedora container to build
     name: Fedora ${{ matrix.fedora-version }} Jellyseerr Build
-    runs-on: ubuntu-lastest
+    runs-on: ubuntu-latest
     container:
       # TODO Make this configurable (use a matrix)
       image: fedora:${{ matrix.fedora-version }}
