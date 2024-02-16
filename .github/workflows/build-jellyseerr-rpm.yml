@@ -4,9 +4,11 @@ name: Build Jellyseerr RPMs
 on:
   push:
     branches:
-      - main
+      - fedora-38
     paths:
-      - path/to/spec
+      - .github/workflows/build-jellyseerr-rpm.yml
+      - jellyseerr.spec
+  workflow_dispatch:
 
 concurrency:
   group: jellyseerr-rpmbuild
