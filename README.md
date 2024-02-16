@@ -6,6 +6,8 @@ Repo that contains the files to build a jellyseerr rpm. Only tested on fedora 38
 ## Necessary packages to install
 - rpmbuild
 - rpmdevtools
+- dnf builddep plugin
+    - This is installed with special syntax: `dnf install 'dnf-command(builddep)'`
 
 ## Steps to create RPM
 - Use rpmdevtools binary `rpmdev-setuptree` to create the necessary format
