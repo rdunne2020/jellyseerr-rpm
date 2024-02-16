@@ -46,9 +46,11 @@ jobs:
           make
           coreutils
 
-      # Pull my repo down to get the spec file
+      # Pull my repo down to get the spec file, utilize deploy key
       - name: Clone Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.BOT_DEPLOY_KEY }}
 
       - name: Configure Git
         run: |
