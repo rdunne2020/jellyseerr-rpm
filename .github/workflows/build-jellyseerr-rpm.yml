@@ -66,7 +66,7 @@ jobs:
         run: spectool -g -R jellyseerr.spec
 
       - name: build rpm
-        run: rpmbuild --define "_topdir /root/rpmbuild/" -ba SPECS/jellyseerr.spec
+        run: rpmbuild --define "_topdir ~/rpmbuild/" -ba SPECS/jellyseerr.spec
 
       - name: Switch to the branch we want to release from and create a tag for the release version, this should be pulled from the spec file
         run: |
@@ -82,5 +82,5 @@ jobs:
         with:
           tag: v$(grep "Version" jellyseerr.spec | awk '{print $2}')
           commit: fedora-${{ matrix.fedora-version }}
-          artifacts: "/root/rpmbuild/RPMS/noarch/*.rpm"
+          artifacts: "~/rpmbuild/RPMS/noarch/*.rpm"
           skipIfReleaseExists: true
