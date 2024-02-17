@@ -24,13 +24,24 @@ jobs:
     name: Fedora ${{ matrix.fedora-version }} Jellyseerr Build
     runs-on: ubuntu-latest
     container:
-      # TODO Make this configurable (use a matrix)
       image: fedora:${{ matrix.fedora-version }}
     defaults:
       run:
         shell: bash
 
     steps:
+      
+      # Pull my repo down to get the spec file, utilize deploy key
+      - name: Clone Repo
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.BOT_DEPLOY_KEY }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "Jelly Bot"
+          git config --global user.email "jelly-builder@rpm.com"
+
       - name: Install Build Tools
         # Utilize YAML scalar block folding, these multiple lines will be turned into one when parsed
         run: >
@@ -46,17 +57,6 @@ jobs:
           make
           coreutils
 
-      # Pull my repo down to get the spec file, utilize deploy key
-      - name: Clone Repo
-        uses: actions/checkout@v4
-        with:
-          ssh-key: ${{ secrets.BOT_DEPLOY_KEY }}
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "Jelly Bot"
-          git config --global user.email "jelly-builder@rpm.com"
-
       # Setup the build structure defaults to ${HOME}/rpmbuild
       - name: Prepare build-tree
         run: rpmdev-setuptree
@@ -70,18 +70,25 @@ jobs:
       - name: build rpm
         run: rpmbuild -ba jellyseerr.spec
 
+      - name: Set Version Number in Github Env
+        run: |
+          VER=v$(grep "Version" jellyseerr.spec | awk '{print $2}')
+          echo "VERSION=${VER}" >> $GITHUB_ENV
+
       - name: Switch to the branch we want to release from and create a tag for the release version, this should be pulled from the spec file
         run: |
           chown root:root .
           git fetch
           git tag v$(grep "Version" jellyseerr.spec | awk '{print $2}')
+          git tag ${{ env.VERSION }} 
           git remote -v
-          git push origin v$(grep "Version" jellyseerr.spec | awk '{print $2}')
+          git push origin ${{ env.VERSION }}
 
       - name: Upload RPM to Release
         uses: ncipollo/release-action@v1
         with:
-          tag: v$(grep "Version" jellyseerr.spec | awk '{print $2}')
-          commit: fedora-${{ matrix.fedora-version }}
+          tag: ${{ env.VERSION }}
+          #commit: fedora-${{ matrix.fedora-version }}
+          commit: main 
           artifacts: "${HOME}/rpmbuild/RPMS/noarch/*.rpm"
           skipIfReleaseExists: true
