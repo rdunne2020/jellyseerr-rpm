@@ -80,7 +80,6 @@ jobs:
         run: |
           chown root:root .
           git fetch
-          git tag v$(grep "Version" jellyseerr.spec | awk '{print $2}')
           git tag ${{ env.VERSION }} 
           git remote -v
           git push origin ${{ env.VERSION }}
