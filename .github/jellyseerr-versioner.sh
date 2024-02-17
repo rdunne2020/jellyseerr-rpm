@@ -19,10 +19,8 @@ echo "SOFTWARE_VER: $JELLYSEERR_CURRENT_VERSION"
 #****I HAVE ADDED A TEST BY SETTING THESE TO == and hard coding 1.8.0 to version num. REVERT TO COMMENTED OUT LINES
 #if [[ ${JELLYSEERR_RPM_VERSION} != ${JELLYSEERR_CURRENT_VERSION} ]]; then
 if [[ ${JELLYSEERR_RPM_VERSION} == ${JELLYSEERR_CURRENT_VERSION} ]]; then
-    #sed -i 's/^\(Version:\s+\)[^\s]*$/\1${JELLYSEERR_CURRENT_VERSION}/' jellyseerr.spec
-    sed -i 's/^\(Version:\s+\)[^\s]*$/\11.8.0/' jellyseerr.spec
-    # DEBUG
-    cat jellyseerr.spec
+    #sed -i 's/^\(Version:\s*\)[^\s]*$/\1${JELLYSEERR_CURRENT_VERSION}/' jellyseerr.spec
+    sed -i 's/^\(Version:\s*\)[^\s]*$/\11.8.0/' jellyseerr.spec
     git commit -m "Updated version number to ${JELLYSEERR_CURRENT_VERSION} to match codebase"
     git push origin main
     exit 0
