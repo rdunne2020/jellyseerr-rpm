@@ -31,17 +31,6 @@ jobs:
 
     steps:
       
-      # Pull my repo down to get the spec file, utilize deploy key
-      - name: Clone Repo
-        uses: actions/checkout@v4
-        with:
-          ssh-key: ${{ secrets.BOT_DEPLOY_KEY }}
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "Jelly Bot"
-          git config --global user.email "jelly-builder@rpm.com"
-
       - name: Install Build Tools
         # Utilize YAML scalar block folding, these multiple lines will be turned into one when parsed
         run: >
@@ -56,6 +45,17 @@ jobs:
           rpmlint
           make
           coreutils
+      
+      # Pull my repo down to get the spec file, utilize deploy key
+      - name: Clone Repo
+        uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.BOT_DEPLOY_KEY }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "Jelly Bot"
+          git config --global user.email "jelly-builder@rpm.com"
 
       # Setup the build structure defaults to ${HOME}/rpmbuild
       - name: Prepare build-tree
@@ -75,7 +75,8 @@ jobs:
           VER=v$(grep "Version" jellyseerr.spec | awk '{print $2}')
           echo "VERSION=${VER}" >> $GITHUB_ENV
 
-      - name: Switch to the branch we want to release from and create a tag for the release version, this should be pulled from the spec file
+      #- name: Switch to the branch we want to release from and create a tag for the release version, this should be pulled from the spec file
+      - name: Create tag for version number to release to
         run: |
           chown root:root .
           git fetch
