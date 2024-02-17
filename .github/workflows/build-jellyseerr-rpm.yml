@@ -8,6 +8,7 @@ on:
     paths:
       - .github/workflows/build-jellyseerr-rpm.yml
       - jellyseerr.spec
+  # TODO: Remove this
   workflow_dispatch:
 
 concurrency:
@@ -36,8 +37,7 @@ jobs:
         run: >
           dnf install -y
           createrepo
-          'dnf-command(builddep)'
-          git
+          'dnf-command(builddep)' git
           rpmdevtools
           gcc
           rpm-build
@@ -76,20 +76,29 @@ jobs:
           echo "VERSION=${VER}" >> $GITHUB_ENV
 
       #- name: Switch to the branch we want to release from and create a tag for the release version, this should be pulled from the spec file
-      - name: Create tag for version number to release to
-        run: |
-          chown root:root .
-          git fetch
-          git tag ${{ env.VERSION }}
-          git remote -v
-          git push origin ${{ env.VERSION }}
+      # - name: Create tag for version number to release to
+      #   run: |
+      #     chown root:root .
+      #     git fetch
+      #     git tag ${{ env.VERSION }}
+      #     git remote -v
+      #     git push origin ${{ env.VERSION }}
 
-      - name: Upload RPM to Release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ env.VERSION }}
-          #commit: fedora-${{ matrix.fedora-version }}
-          commit: main
-          # /home/github should be the default ${HOME} and where the rpm lives
-          artifacts: "/home/github/rpmbuild/RPMS/noarch/*.rpm"
-          skipIfReleaseExists: true
+      - name: debug
+        run: |
+          echo ${HOME}
+          echo "ONE"
+          ls ${HOME}
+          echo "TWO"
+          find ${HOME}/rpmbuild/
+          echo "THREE"
+
+      # - name: Upload RPM to Release
+      #   uses: ncipollo/release-action@v1
+      #   with:
+      #     tag: ${{ env.VERSION }}
+      #     #commit: fedora-${{ matrix.fedora-version }}
+      #     commit: main
+      #     # /home/github should be the default ${HOME} and where the rpm lives
+      #     artifacts: "/home/github/rpmbuild/RPMS/noarch/*.rpm"
+      #     skipIfReleaseExists: true
