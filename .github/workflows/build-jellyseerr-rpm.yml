@@ -30,7 +30,7 @@ jobs:
         shell: bash
 
     steps:
-      
+
       - name: Install Build Tools
         # Utilize YAML scalar block folding, these multiple lines will be turned into one when parsed
         run: >
@@ -45,7 +45,7 @@ jobs:
           rpmlint
           make
           coreutils
-      
+
       # Pull my repo down to get the spec file, utilize deploy key
       - name: Clone Repo
         uses: actions/checkout@v4
@@ -80,7 +80,7 @@ jobs:
         run: |
           chown root:root .
           git fetch
-          git tag ${{ env.VERSION }} 
+          git tag ${{ env.VERSION }}
           git remote -v
           git push origin ${{ env.VERSION }}
 
@@ -89,6 +89,7 @@ jobs:
         with:
           tag: ${{ env.VERSION }}
           #commit: fedora-${{ matrix.fedora-version }}
-          commit: main 
-          artifacts: "${HOME}/rpmbuild/RPMS/noarch/*.rpm"
+          commit: main
+          # /home/github should be the default ${HOME} and where the rpm lives
+          artifacts: "/home/github/rpmbuild/RPMS/noarch/*.rpm"
           skipIfReleaseExists: true
