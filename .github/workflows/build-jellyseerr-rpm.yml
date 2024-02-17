@@ -3,12 +3,10 @@ name: Build Jellyseerr RPMs
 # TODO Get this right
 on:
   push:
-    branches:
-      - fedora-38
     paths:
       - .github/workflows/build-jellyseerr-rpm.yml
       - jellyseerr.spec
-  # TODO: Remove this
+  # Manually run if need be
   workflow_dispatch:
 
 concurrency:
@@ -88,7 +86,6 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ env.VERSION }}
-          #commit: fedora-${{ matrix.fedora-version }}
           commit: main
           # /github/home should be the default ${HOME} and where the rpm lives
           artifacts: "/github/home/rpmbuild/RPMS/x86_64/*.rpm"

@@ -1,0 +1,34 @@
+name: Check to see if the jellyseerr rpm needs updated
+
+on:
+  # Run this once every Friday
+  schedule:
+    # Quote this string otherwise yml parsing will eat *'s
+    - cron: '30 2 * * 5'
+
+  # Manually run if need be
+  workflow_dispatch:
+
+jobs:
+  update-checker:
+    name: Jellyseerr Version Checker
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      # Use deploy key
+      - name: Checkout jellyseerr-rpm
+        uses: actions/checkout@v4
+        with:
+          ssh_key: ${{ secrets.BOT_DEPLOY_KEY }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "Jelly Bot"
+          git config --global user.email "jelly-builder@rpm.com"
+
+      - name: Run custom script to check versioning
+        run: |
+          ./.github/jellyseerr-versioner.sh
