@@ -22,7 +22,7 @@ jobs:
       - name: Checkout jellyseerr-rpm
         uses: actions/checkout@v4
         with:
-          ssh_key: ${{ secrets.BOT_DEPLOY_KEY }}
+          ssh-key: ${{ secrets.BOT_DEPLOY_KEY }}
 
       - name: Configure Git
         run: |
