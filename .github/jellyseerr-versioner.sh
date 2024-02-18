@@ -21,6 +21,7 @@ echo "SOFTWARE_VER: $JELLYSEERR_CURRENT_VERSION"
 if [[ ${JELLYSEERR_RPM_VERSION} == ${JELLYSEERR_CURRENT_VERSION} ]]; then
     #sed -i 's/^\(Version:\s*\)[^\s]*$/\1${JELLYSEERR_CURRENT_VERSION}/' jellyseerr.spec
     sed -i 's/^\(Version:\s*\)[^\s]*$/\11.8.0/' jellyseerr.spec
+    git add jellyseerr.spec
     git commit -m "Updated version number to ${JELLYSEERR_CURRENT_VERSION} to match codebase"
     git push origin main
     exit 0
