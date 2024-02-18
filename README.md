@@ -5,7 +5,7 @@ Repo that contains the files to build a jellyseerr rpm. Only tested on fedora 38
 
 
 ## Steps to create RPM manually
-###Necessary packages to install
+### Necessary packages to install
     - rpmbuild
     - rpmdevtools
     - createrepo
