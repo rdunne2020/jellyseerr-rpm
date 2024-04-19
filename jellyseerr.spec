@@ -5,7 +5,7 @@ Summary:    Fork of overseerr for jellyfin support
 
 License:    MIT
 URL:        https://github.com/Fallenbagel/jellyseerr
-Source:     https://github.com/Fallenbagel/jellyseerr/archive/refs/tags/v1.7.0.tar.gz
+Source:     https://github.com/Fallenbagel/jellyseerr/archive/refs/tags/v%{version}.tar.gz
 
 # Use this to make sure the necessary macros are available like _unitdir
 BuildRequires: systemd
