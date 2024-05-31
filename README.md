@@ -24,3 +24,4 @@ Repo that contains the files to build a jellyseerr rpm. Only tested on fedora 38
 
 ## TODO:
 - Put RPM in a repo
+- Put a task in the Version Checker to create a new tag outside of the build script. This should prevent a double run.
