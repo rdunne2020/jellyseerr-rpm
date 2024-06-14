@@ -1,5 +1,5 @@
 Name:       jellyseerr
-Version:    1.9.0
+Version:    1.9.2
 Release:    %autorelease
 Summary:    Fork of overseerr for jellyfin support
 
