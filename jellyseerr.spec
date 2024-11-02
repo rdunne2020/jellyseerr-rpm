@@ -12,7 +12,6 @@ BuildRequires: systemd
 BuildRequires: systemd-rpm-macros
 BuildRequires: tar
 BuildRequires: gzip
-BuildRequires: nodejs
 
 Requires(post):    systemd
 Requires(preun):   systemd
@@ -33,17 +32,17 @@ Jellyseerr is a free and open source software application for managing requests 
 
 %build
 # Install yarn locally, need to allow legacy deps
-npm i -S --legacy-peer-deps  yarn
+npm i --global pnpm
 PATH=%{_builddir}/%{name}-%{version}/node_modules/.bin/:${PATH}
 
 # Install packages
-CYPRESS_INSTALL_BINARY=0 yarn install --frozen-lockfile --network-timeout 1000000
+CYPRESS_INSTALL_BINARY=0 pnpm install --frozen-lockfile
 
 # Compile everything
-yarn run build
+pnpm build
 
-# Turn node_modules into just prod deps
-yarn install --production --ignore-scripts --prefer-offline
+# Prune unneeded deps
+pnpm prune --prod --ignore-scripts
 
 # Clean out un-needed files
 rm -rf ./src ./server ./.next/cache
@@ -84,7 +83,7 @@ install -p -D -m 0644 jellyseerr.conf %{buildroot}%{_sysconfdir}/%{name}/
 install -p -D -m 0644 %{name}.service %{buildroot}%{_unitdir}/%{name}.service
 
 mv package.json %{buildroot}%{_datadir}/%{name}/
-mv package-lock.json %{buildroot}%{_datadir}/%{name}/
+mv pnpm-lock.yaml %{buildroot}%{_datadir}/%{name}/
 mv *.js %{buildroot}%{_datadir}/%{name}/
 mv *.ts %{buildroot}%{_datadir}/%{name}/
 mv overseerr-api.yml %{buildroot}%{_datadir}/%{name}/
