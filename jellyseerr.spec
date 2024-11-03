@@ -14,6 +14,7 @@ BuildRequires: tar
 BuildRequires: gzip
 
 Requires(post):    systemd
+Requires(post):    pnpm
 Requires(preun):   systemd
 Requires(postun):  systemd
 
@@ -21,6 +22,12 @@ Requires(postun):  systemd
 %global debug_package %{nil}
 # Turn off scanning node_modules for dependencies
 %global __requires_exclude_from ^.*node_modules/.*$
+
+# Tells RPM not to fail the build if it finds binaries in noarch packages
+%global _binaries_in_noarch_packages_terminate_build 0
+
+# Tells the shebang mangler script to skip files in node_modules
+%global __brp_mangle_shebangs_exclude_from node_modules
 
 %description
 Jellyseerr is a free and open source software application for managing requests for your media library. It is a a fork of Overseerr built to bring support for Jellyfin & Emby media servers!
@@ -64,7 +71,7 @@ Environment=NODE_ENV=production
 Type=exec
 Restart=on-failure
 WorkingDirectory=%{_datadir}/%{name}
-ExecStart=/usr/bin/node dist/index.js
+ExecStart=pnpm start
 
 [Install]
 WantedBy=multi-user.target
