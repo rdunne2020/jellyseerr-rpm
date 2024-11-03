@@ -12,9 +12,9 @@ BuildRequires: systemd
 BuildRequires: systemd-rpm-macros
 BuildRequires: tar
 BuildRequires: gzip
-BuildRequires: nodejs
 
 Requires(post):    systemd
+Requires(post):    pnpm
 Requires(preun):   systemd
 Requires(postun):  systemd
 
@@ -22,6 +22,12 @@ Requires(postun):  systemd
 %global debug_package %{nil}
 # Turn off scanning node_modules for dependencies
 %global __requires_exclude_from ^.*node_modules/.*$
+
+# Tells RPM not to fail the build if it finds binaries in noarch packages
+%global _binaries_in_noarch_packages_terminate_build 0
+
+# Tells the shebang mangler script to skip files in node_modules
+%global __brp_mangle_shebangs_exclude_from node_modules
 
 %description
 Jellyseerr is a free and open source software application for managing requests for your media library. It is a a fork of Overseerr built to bring support for Jellyfin & Emby media servers!
@@ -33,17 +39,17 @@ Jellyseerr is a free and open source software application for managing requests 
 
 %build
 # Install yarn locally, need to allow legacy deps
-npm i -S --legacy-peer-deps  yarn
+npm i --global pnpm
 PATH=%{_builddir}/%{name}-%{version}/node_modules/.bin/:${PATH}
 
 # Install packages
-CYPRESS_INSTALL_BINARY=0 yarn install --frozen-lockfile --network-timeout 1000000
+CYPRESS_INSTALL_BINARY=0 pnpm install --frozen-lockfile
 
 # Compile everything
-yarn run build
+pnpm build
 
-# Turn node_modules into just prod deps
-yarn install --production --ignore-scripts --prefer-offline
+# Prune unneeded deps
+pnpm prune --prod --ignore-scripts
 
 # Clean out un-needed files
 rm -rf ./src ./server ./.next/cache
@@ -65,7 +71,7 @@ Environment=NODE_ENV=production
 Type=exec
 Restart=on-failure
 WorkingDirectory=%{_datadir}/%{name}
-ExecStart=/usr/bin/node dist/index.js
+ExecStart=pnpm start
 
 [Install]
 WantedBy=multi-user.target
@@ -84,7 +90,7 @@ install -p -D -m 0644 jellyseerr.conf %{buildroot}%{_sysconfdir}/%{name}/
 install -p -D -m 0644 %{name}.service %{buildroot}%{_unitdir}/%{name}.service
 
 mv package.json %{buildroot}%{_datadir}/%{name}/
-mv package-lock.json %{buildroot}%{_datadir}/%{name}/
+mv pnpm-lock.yaml %{buildroot}%{_datadir}/%{name}/
 mv *.js %{buildroot}%{_datadir}/%{name}/
 mv *.ts %{buildroot}%{_datadir}/%{name}/
 mv overseerr-api.yml %{buildroot}%{_datadir}/%{name}/
