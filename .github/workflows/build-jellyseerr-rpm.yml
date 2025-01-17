@@ -47,7 +47,7 @@ jobs:
       - name: Install Node 20
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       # Pull my repo down to get the spec file, utilize deploy key
       - name: Clone Repo
