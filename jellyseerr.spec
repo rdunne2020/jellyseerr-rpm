@@ -39,7 +39,7 @@ Jellyseerr is a free and open source software application for managing requests 
 
 %build
 # Install yarn locally, need to allow legacy deps
-npm i --global pnpm
+npm i --global pnpm@9.0.0
 PATH=%{_builddir}/%{name}-%{version}/node_modules/.bin/:${PATH}
 
 # Install packages
