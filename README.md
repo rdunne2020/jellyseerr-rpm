@@ -1,5 +1,5 @@
 # jellyseerr-rpm
-Repo that contains the files to build a jellyseerr rpm. Only tested on fedora 38 so far
+Repo that contains the files to build a jellyseerr rpm. Only tested on fedora 38 and 41 so far
 
 ### [jellyseerr](https://github.com/Fallenbagel/jellyseerr)
 
