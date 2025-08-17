@@ -18,7 +18,7 @@ jobs:
   rpm-build:
     strategy:
       matrix:
-        fedora-version: [41]
+        fedora-version: [42]
     # Spin up ubuntu runner, but use a fedora container to build
     name: Fedora ${{ matrix.fedora-version }} Jellyseerr Build
     runs-on: ubuntu-latest
