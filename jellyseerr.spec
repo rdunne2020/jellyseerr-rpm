@@ -39,7 +39,7 @@ Jellyseerr is a free and open source software application for managing requests 
 
 %build
 # Install pnpm locally, need to allow legacy deps
-npm i --global pnpm@10.14.0
+npm i --global pnpm@9.15.9
 PATH=%{_builddir}/%{name}-%{version}/node_modules/.bin/:${PATH}
 
 # Install packages
