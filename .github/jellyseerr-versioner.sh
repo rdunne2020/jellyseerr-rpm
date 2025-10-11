@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Get the most recent version
-JELLYSEERR_CURRENT_VERSION=$(curl https://github.com/seerr-team/jellyseerr/releases 2>/dev/null | grep -Eo "Link--primary Link.*span>" | grep -m 1 -Eo "[0-9]+\.[0-9]+\.[0-9]+")
+JELLYSEERR_CURRENT_VERSION=$(curl https://github.com/seerr-team/seerr/releases 2>/dev/null | grep -Eo "Link--primary Link.*span>" | grep -m 1 -Eo "[0-9]+\.[0-9]+\.[0-9]+")
 if [[ $? -gt 0 ]]; then
-    echo "FATAL: Could not get version number from jellyseerr releases"
+    echo "FATAL: Could not get version number from seerr releases"
     exit 100
 fi
 

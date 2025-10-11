@@ -1,11 +1,11 @@
-Name:       jellyseerr
+Name:       seerr
 Version:    2.7.3
 Release:    %autorelease
 Summary:    Fork of overseerr for jellyfin support
 
 License:    MIT
-URL:        https://github.com/seerr-team/jellyseerr
-Source:     https://github.com/seerr-team/jellyseerr/archive/refs/tags/v%{version}.tar.gz
+URL:        https://github.com/seerr-team/seerr
+Source:     https://github.com/seerr-team/seerr/archive/refs/tags/v%{version}.tar.gz
 
 # Use this to make sure the necessary macros are available like _unitdir
 BuildRequires: systemd
@@ -30,7 +30,7 @@ Requires(postun):  systemd
 %global __brp_mangle_shebangs_exclude_from node_modules
 
 %description
-Jellyseerr is a free and open source software application for managing requests for your media library. It is a a fork of Overseerr built to bring support for Jellyfin & Emby media servers!
+Seerr is a free and open source software application for managing requests for your media library. It is a a fork of Overseerr built to bring support for Jellyfin & Emby media servers!
 
 
 %prep
@@ -93,7 +93,7 @@ mv package.json %{buildroot}%{_datadir}/%{name}/
 mv pnpm-lock.yaml %{buildroot}%{_datadir}/%{name}/
 mv *.js %{buildroot}%{_datadir}/%{name}/
 mv *.ts %{buildroot}%{_datadir}/%{name}/
-mv jellyseerr-api.yml %{buildroot}%{_datadir}/%{name}/
+mv seerr-api.yml %{buildroot}%{_datadir}/%{name}/
 mv node_modules %{buildroot}%{_datadir}/%{name}/
 mv dist/ %{buildroot}%{_datadir}/%{name}/
 mv public/ %{buildroot}%{_datadir}/%{name}/
