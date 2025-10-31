@@ -93,7 +93,7 @@ mv package.json %{buildroot}%{_datadir}/%{name}/
 mv pnpm-lock.yaml %{buildroot}%{_datadir}/%{name}/
 mv *.js %{buildroot}%{_datadir}/%{name}/
 mv *.ts %{buildroot}%{_datadir}/%{name}/
-mv seerr-api.yml %{buildroot}%{_datadir}/%{name}/
+mv jellyseerr-api.yml %{buildroot}%{_datadir}/%{name}/
 mv node_modules %{buildroot}%{_datadir}/%{name}/
 mv dist/ %{buildroot}%{_datadir}/%{name}/
 mv public/ %{buildroot}%{_datadir}/%{name}/
@@ -118,4 +118,3 @@ mv .next/ %{buildroot}%{_datadir}/%{name}/
 
 %changelog
 %autochangelog
-
