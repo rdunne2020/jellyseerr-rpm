@@ -4,7 +4,7 @@ on:
   # Run this once every Friday
   schedule:
     # Quote this string otherwise yml parsing will eat *'s
-    - cron: '30 2 * * 5'
+    - cron: "30 2 * * 5"
 
   # Manually run if need be
   workflow_dispatch:
@@ -26,8 +26,8 @@ jobs:
 
       - name: Configure Git
         run: |
-          git config --global user.name "Jelly Bot"
-          git config --global user.email "jelly-builder@rpm.com"
+          git config --global user.name "Seerr Bot"
+          git config --global user.email "seerr-builder@rpm.com"
 
       - name: Run custom script to check versioning
         run: |

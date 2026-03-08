@@ -1,7 +1,7 @@
 Name:       seerr
-Version:    2.7.3
+Version:    3.1.0
 Release:    %autorelease
-Summary:    Fork of overseerr for jellyfin support
+Summary:    Free and open source software application for managing requests for your media library
 
 License:    MIT
 URL:        https://github.com/seerr-team/seerr
@@ -12,9 +12,12 @@ BuildRequires: systemd
 BuildRequires: systemd-rpm-macros
 BuildRequires: tar
 BuildRequires: gzip
+BuildRequires: pnpm
+BuildRequires: nodejs22
 
+Requires:          nodejs22
+Requires:          pnpm
 Requires(post):    systemd
-Requires(post):    pnpm
 Requires(preun):   systemd
 Requires(postun):  systemd
 
@@ -30,8 +33,7 @@ Requires(postun):  systemd
 %global __brp_mangle_shebangs_exclude_from node_modules
 
 %description
-Seerr is a free and open source software application for managing requests for your media library. It is a a fork of Overseerr built to bring support for Jellyfin & Emby media servers!
-
+Seerr is a free and open source software application for managing requests for your media library. It integrates with the media server of your choice: Jellyfin, Plex, and Emby. In addition, it integrates with your existing services, such as Sonarr, Radarr.
 
 %prep
 %autosetup
@@ -39,7 +41,6 @@ Seerr is a free and open source software application for managing requests for y
 
 %build
 # Install pnpm locally, need to allow legacy deps
-npm i --global pnpm@9.15.9
 PATH=%{_builddir}/%{name}-%{version}/node_modules/.bin/:${PATH}
 
 # Install packages
@@ -55,23 +56,23 @@ pnpm prune --prod --ignore-scripts
 rm -rf ./src ./server ./.next/cache
 
 # Create env file
-echo PORT=5055 > ./jellyseerr.conf
-echo HOST=127.0.0.1 >> ./jellyseerr.conf
+echo PORT=5055 > ./seerr.conf
+echo HOST=0.0.0.0 >> ./seerr.conf
 
 # Create systemd file
 cat <<EOT >> %{name}.service
 [Unit]
-Description=Jellyseerr Service
+Description=Seerr Service
 Wants=network-online.target
 After=network-online.target
 
 [Service]
-EnvironmentFile=%{_sysconfdir}/%{name}/jellyseerr.conf
+EnvironmentFile=%{_sysconfdir}/%{name}/seerr.conf
 Environment=NODE_ENV=production
 Type=exec
 Restart=on-failure
 WorkingDirectory=%{_datadir}/%{name}
-ExecStart=pnpm start
+ExecStart=/usr/bin/pnpm start
 
 [Install]
 WantedBy=multi-user.target
@@ -84,7 +85,7 @@ mkdir -m 755 -p %{buildroot}%{_datadir}/%{name}
 mkdir -m 755 -p %{buildroot}%{_sysconfdir}/%{name}
 
 # Install the config file where the systemd unit expects it
-install -p -D -m 0644 jellyseerr.conf %{buildroot}%{_sysconfdir}/%{name}/
+install -p -D -m 0644 seerr.conf %{buildroot}%{_sysconfdir}/%{name}/
 
 # Install systemd unit file
 install -p -D -m 0644 %{name}.service %{buildroot}%{_unitdir}/%{name}.service
@@ -93,21 +94,21 @@ mv package.json %{buildroot}%{_datadir}/%{name}/
 mv pnpm-lock.yaml %{buildroot}%{_datadir}/%{name}/
 mv *.js %{buildroot}%{_datadir}/%{name}/
 mv *.ts %{buildroot}%{_datadir}/%{name}/
-mv jellyseerr-api.yml %{buildroot}%{_datadir}/%{name}/
+mv seerr-api.yml %{buildroot}%{_datadir}/%{name}/
 mv node_modules %{buildroot}%{_datadir}/%{name}/
 mv dist/ %{buildroot}%{_datadir}/%{name}/
 mv public/ %{buildroot}%{_datadir}/%{name}/
 mv .next/ %{buildroot}%{_datadir}/%{name}/
 
 %post
-%systemd_post jellyseerr.service
+%systemd_post seerr.service
 
 %preun
-%systemd_preun jellyseerr.service
+%systemd_preun seerr.service
 
 
 %postun
-%systemd_postun_with_restart jellyseerr.service
+%systemd_postun_with_restart seerr.service
 
 # TODO Get perms right
 %files

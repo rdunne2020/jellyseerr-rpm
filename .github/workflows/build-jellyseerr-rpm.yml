@@ -5,7 +5,7 @@ on:
   push:
     paths:
       - .github/workflows/build-jellyseerr-rpm.yml
-      - jellyseerr.spec
+      - seerr.spec
   # Manually run if need be
   workflow_dispatch:
 
@@ -18,38 +18,22 @@ jobs:
   rpm-build:
     strategy:
       matrix:
-        fedora-version: [42]
-    # Spin up ubuntu runner, but use a fedora container to build
+        fedora-version: [42, 43]
+    # Spin up ubuntu runner and install Earthly on it
     name: Fedora ${{ matrix.fedora-version }} Jellyseerr Build
     runs-on: ubuntu-latest
-    container:
-      image: fedora:${{ matrix.fedora-version }}
+    # container:
+    #   image: fedora:${{ matrix.fedora-version }}
     defaults:
       run:
         shell: bash
 
     steps:
-
-      - name: Install Build Tools
-        # Utilize YAML scalar block folding, these multiple lines will be turned into one when parsed
-        run: >
-          dnf install -y
-          createrepo
-          'dnf-command(builddep)' git
-          rpmdevtools
-          gcc
-          rpm-build
-          rpm-devel
-          rpmlint
-          make
-          coreutils
-
-      - name: Install Node 20
-        uses: actions/setup-node@v4
+      - name: Install EarthBuild
+        uses: EarthBuild/actions-setup@main
         with:
-          node-version: '22'
-
-      # Pull my repo down to get the spec file, utilize deploy key
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          version: "latest"
       - name: Clone Repo
         uses: actions/checkout@v4
         with:
@@ -57,25 +41,19 @@ jobs:
 
       - name: Configure Git
         run: |
-          git config --global user.name "Jelly Bot"
-          git config --global user.email "jelly-builder@rpm.com"
+          git config --global user.name "Seerr Bot"
+          git config --global user.email "seerr-builder@rpm.com"
 
-      # Setup the build structure defaults to ${HOME}/rpmbuild
-      - name: Prepare build-tree
-        run: rpmdev-setuptree
+      - name: Run the Earthly build
+        env:
+          FORCE_COLOR: true
+          EARTHLY_CI: true
 
-      - name: install build deps
-        run: dnf builddep -y jellyseerr.spec
-
-      - name: download the jellyseer source
-        run: spectool -g -R jellyseerr.spec
-
-      - name: build rpm
-        run: rpmbuild -ba jellyseerr.spec
+        run: earth -a +build-rpm/*
 
       - name: Set Version Number in Github Env
         run: |
-          VER=v$(grep "Version" jellyseerr.spec | awk '{print $2}')
+          VER=v$(grep "Version" seerr.spec | awk '{print $2}')
           echo "VERSION=${VER}" >> $GITHUB_ENV
 
       #- name: Switch to the branch we want to release from and create a tag for the release version, this should be pulled from the spec file
@@ -92,6 +70,6 @@ jobs:
         with:
           tag: ${{ env.VERSION }}
           commit: main
-          # /github/home should be the default ${HOME} and where the rpm lives
-          artifacts: "/github/home/rpmbuild/RPMS/x86_64/*.rpm"
+          # Earthly should save the artifact into CWD
+          artifacts: "./*.rpm"
           skipIfReleaseExists: true
