@@ -1,5 +1,5 @@
 Name:       seerr
-Version:    3.1.0
+Version:    3.3.0
 Release:    %autorelease
 Summary:    Free and open source software application for managing requests for your media library
 
