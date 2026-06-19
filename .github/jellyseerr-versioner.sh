@@ -12,7 +12,7 @@ SEERR_RPM_VERSION=$(grep "Version:" seerr.spec | awk '{print $2}')
 # The version's don't match, kick off the update
 if [[ ${SEERR_RPM_VERSION} != ${SEERR_CURRENT_VERSION} ]]; then
     sed -i "s/^\(Version:\s*\)[^\s]*$/\1${SEERR_CURRENT_VERSION}/" seerr.spec
-    git add jellyseerr.spec
+    git add seerr.spec
     git commit -m "chore: update version number to ${SEERR_CURRENT_VERSION} to match upstream"
     git push origin main
     exit 0
