@@ -1,0 +1,87 @@
+name: Build Seerr RPMs
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seerr-rpmbuild-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  checks:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 -m unittest discover -s tests -v
+      - run: bash -n scripts/build-rpm.sh tests/smoke-rpm.sh
+      - run: shellcheck scripts/build-rpm.sh tests/smoke-rpm.sh
+      - name: Validate GitHub Actions workflows
+        run: >-
+          docker run --rm -v "$PWD:/repo:ro" -w /repo
+          rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
+
+  build:
+    timeout-minutes: 45
+    needs: checks
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        fedora: [42, 43]
+    container: fedora:${{ matrix.fedora }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install build tools and dependencies
+        run: |
+          dnf install -y rpm-build rpmdevtools dnf5-plugins systemd
+          dnf builddep -y seerr.spec
+      - name: Validate release tag
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          version=$(rpmspec -q --qf '%{version}' seerr.spec)
+          test "$GITHUB_REF_NAME" = "v$version"
+      - name: Build RPM and SRPM
+        run: bash scripts/build-rpm.sh
+      - name: Install and smoke test
+        run: bash tests/smoke-rpm.sh artifacts/seerr-*.rpm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: seerr-fedora-${{ matrix.fedora }}
+          path: artifacts/*.rpm
+          if-no-files-found: error
+
+  release:
+    timeout-minutes: 10
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: seerr-fedora-*
+          merge-multiple: true
+          path: artifacts
+      - name: Publish tested RPMs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
+          fi
+          gh release upload "$GITHUB_REF_NAME" artifacts/*.rpm --clobber
