@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        fedora: [42, 43]
+        fedora: [43, 44]
     container: fedora:${{ matrix.fedora }}
     steps:
       - uses: actions/checkout@v4
