@@ -1,0 +1,28 @@
+[Unit]
+Description=Seerr media request manager
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=exec
+User=seerr
+Group=seerr
+Environment=NODE_ENV=production
+Environment=NEXT_TELEMETRY_DISABLED=1
+Environment=CONFIG_DIRECTORY=/var/lib/seerr
+EnvironmentFile=/etc/seerr/seerr.conf
+WorkingDirectory=@APP_DIR@
+ExecStart=/usr/bin/node @APP_DIR@/dist/index.js
+Restart=on-failure
+RestartSec=5
+StateDirectory=seerr
+StateDirectoryMode=0750
+CacheDirectory=seerr
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
