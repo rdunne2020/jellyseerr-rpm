@@ -1,104 +1,79 @@
-Name:       seerr
-Version:    3.5.0
-Release:    %autorelease
-Summary:    Free and open source software application for managing requests for your media library
+Name:           seerr
+Version:        3.5.0
+Release:        1%{?dist}
+Summary:        Media request manager for Jellyfin, Plex, and Emby
+License:        MIT
+URL:            https://github.com/seerr-team/seerr
+Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz
+Source1:        seerr.service
+Source2:        seerr.conf
 
-License:    MIT
-URL:        https://github.com/seerr-team/seerr
-Source:     https://github.com/seerr-team/seerr/archive/refs/tags/v%{version}.tar.gz
+BuildRequires:  systemd-rpm-macros
+BuildRequires:  nodejs22 >= 22.19.0
+BuildRequires:  pnpm >= 10
+BuildRequires:  gcc-c++
+BuildRequires:  make
+BuildRequires:  python3
+BuildRequires:  tar
+BuildRequires:  gzip
+BuildRequires:  findutils
+Requires:       nodejs22 >= 22.19.0
+# The service account is created in %pre before owned directories are installed.
+Provides:       user(seerr)
+Provides:       group(seerr)
+Requires(pre):  shadow-utils
+%{?systemd_requires}
 
-# Use this to make sure the necessary macros are available like _unitdir
-BuildRequires: systemd
-BuildRequires: systemd-rpm-macros
-BuildRequires: tar
-BuildRequires: gzip
-BuildRequires: pnpm
-BuildRequires: nodejs22
-
-Requires:          nodejs22
-Requires:          pnpm
-Requires(post):    systemd
-Requires(preun):   systemd
-Requires(postun):  systemd
-
-# Turn off debugging
+# The bundled dependencies contain architecture-specific native modules.
 %global debug_package %{nil}
-# Turn off scanning node_modules for dependencies
-%global __requires_exclude_from ^.*node_modules/.*$
-
-# Tells RPM not to fail the build if it finds binaries in noarch packages
-%global _binaries_in_noarch_packages_terminate_build 0
-
-# Tells the shebang mangler script to skip files in node_modules
-%global __brp_mangle_shebangs_exclude_from node_modules
+%global __requires_exclude_from ^%{_libdir}/%{name}/node_modules/.*$
+%global __provides_exclude_from ^%{_libdir}/%{name}/node_modules/.*$
+%global __brp_mangle_shebangs_exclude_from ^%{_libdir}/%{name}/node_modules/.*$
 
 %description
-Seerr is a free and open source software application for managing requests for your media library. It integrates with the media server of your choice: Jellyfin, Plex, and Emby. In addition, it integrates with your existing services, such as Sonarr, Radarr.
+Seerr manages media requests and integrates with Jellyfin, Plex, Emby,
+Sonarr, and Radarr. This package bundles its production Node.js dependencies.
 
 %prep
 %autosetup
 
-
 %build
-# Install pnpm locally, need to allow legacy deps
-PATH=%{_builddir}/%{name}-%{version}/node_modules/.bin/:${PATH}
-
-# Install packages
-CYPRESS_INSTALL_BINARY=0 pnpm install --frozen-lockfile
-
-# Compile everything
+export CI=true
+export CYPRESS_INSTALL_BINARY=0
+export NEXT_TELEMETRY_DISABLED=1
+export COMMIT_TAG=v%{version}
+pnpm install --frozen-lockfile
 pnpm build
-
-# Prune unneeded deps
 pnpm prune --prod --ignore-scripts
-
-# Clean out un-needed files
-rm -rf ./src ./server ./.next/cache
-
-# Create env file
-echo PORT=5055 > ./seerr.conf
-echo HOST=0.0.0.0 >> ./seerr.conf
-
-# Create systemd file
-cat <<EOT >> %{name}.service
-[Unit]
-Description=Seerr Service
-Wants=network-online.target
-After=network-online.target
-
-[Service]
-EnvironmentFile=%{_sysconfdir}/%{name}/seerr.conf
-Environment=NODE_ENV=production
-Type=exec
-Restart=on-failure
-WorkingDirectory=%{_datadir}/%{name}
-ExecStart=/usr/bin/pnpm start
-
-[Install]
-WantedBy=multi-user.target
-EOT
+# bcrypt ships prebuilt binaries for other operating systems and architectures.
+bcrypt_prebuilds=$(dirname "$(node -p "require.resolve('bcrypt/package.json')")")/prebuilds
+find "$bcrypt_prebuilds" -mindepth 1 -maxdepth 1 -type d \
+    ! -name "linux-$(node -p 'process.arch')" -exec rm -rf {} +
+rm -rf .next/cache
 
 %install
-rm -rf %{buildroot}
+install -d %{buildroot}%{_libdir}/%{name}
+# Keep the upstream runtime configuration alongside the compiled application.
+cp -a package.json next.config.ts seerr-api.yml node_modules dist public .next \
+    %{buildroot}%{_libdir}/%{name}/
+printf '{"commitTag":"v%{version}"}\n' > %{buildroot}%{_libdir}/%{name}/committag.json
+ln -s %{_localstatedir}/cache/%{name} %{buildroot}%{_libdir}/%{name}/.next/cache
+install -Dpm0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
+sed -i 's|@APP_DIR@|%{_libdir}/%{name}|g' %{buildroot}%{_unitdir}/%{name}.service
+install -Dpm0644 %{SOURCE2} %{buildroot}%{_sysconfdir}/%{name}/%{name}.conf
+install -d -m0750 %{buildroot}%{_localstatedir}/lib/%{name}
+install -d -m0750 %{buildroot}%{_localstatedir}/cache/%{name}
 
-mkdir -m 755 -p %{buildroot}%{_datadir}/%{name}
-mkdir -m 755 -p %{buildroot}%{_sysconfdir}/%{name}
+%check
+test -s dist/index.js
+test -s .next/BUILD_ID
+node -e "require('bcrypt'); require('sqlite3'); require('sharp')"
 
-# Install the config file where the systemd unit expects it
-install -p -D -m 0644 seerr.conf %{buildroot}%{_sysconfdir}/%{name}/
-
-# Install systemd unit file
-install -p -D -m 0644 %{name}.service %{buildroot}%{_unitdir}/%{name}.service
-
-mv package.json %{buildroot}%{_datadir}/%{name}/
-mv pnpm-lock.yaml %{buildroot}%{_datadir}/%{name}/
-mv *.js %{buildroot}%{_datadir}/%{name}/
-mv *.ts %{buildroot}%{_datadir}/%{name}/
-mv seerr-api.yml %{buildroot}%{_datadir}/%{name}/
-mv node_modules %{buildroot}%{_datadir}/%{name}/
-mv dist/ %{buildroot}%{_datadir}/%{name}/
-mv public/ %{buildroot}%{_datadir}/%{name}/
-mv .next/ %{buildroot}%{_datadir}/%{name}/
+%pre
+getent group seerr >/dev/null || groupadd -r seerr
+getent passwd seerr >/dev/null || \
+    useradd -r -g seerr -d %{_localstatedir}/lib/seerr -s /sbin/nologin \
+    -c 'Seerr service account' seerr
 
 %post
 %systemd_post seerr.service
@@ -106,16 +81,18 @@ mv .next/ %{buildroot}%{_datadir}/%{name}/
 %preun
 %systemd_preun seerr.service
 
-
 %postun
 %systemd_postun_with_restart seerr.service
 
-# TODO Get perms right
 %files
-%config(noreplace) %{_sysconfdir}/%{name}
-%{_datadir}/%{name}
+%license LICENSE
+%dir %{_sysconfdir}/%{name}
+%config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
+%{_libdir}/%{name}/
 %{_unitdir}/%{name}.service
-
+%attr(0750,seerr,seerr) %dir %{_localstatedir}/lib/%{name}
+%attr(0750,seerr,seerr) %dir %{_localstatedir}/cache/%{name}
 
 %changelog
-%autochangelog
+* Fri Oct 23 2026 Seerr RPM maintainers <noreply@localhost> - 3.5.0-1
+- Package Seerr with an unprivileged service and persistent state directories

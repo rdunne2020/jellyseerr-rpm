@@ -1,34 +1,44 @@
-name: Check to see if the jellyseerr rpm needs updated
+name: Check for Seerr updates
 
 on:
-  # Run this once every Friday
   schedule:
-    # Quote this string otherwise yml parsing will eat *'s
-    - cron: "30 2 * * 5"
-
-  # Manually run if need be
+    - cron: '30 2 * * 5'
   workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: seerr-version-check
+  cancel-in-progress: false
 
 jobs:
   update-checker:
-    name: Jellyseerr Version Checker
+    timeout-minutes: 10
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-
     steps:
-      # Use deploy key
-      - name: Checkout jellyseerr-rpm
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: Check latest stable release
+        id: update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/check-update.py
+      - uses: peter-evans/create-pull-request@v7
+        id: pull-request
         with:
-          ssh-key: ${{ secrets.BOT_DEPLOY_KEY }}
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "Seerr Bot"
-          git config --global user.email "seerr-builder@rpm.com"
-
-      - name: Run custom script to check versioning
-        run: |
-          ./.github/jellyseerr-versioner.sh
+          branch: chore/seerr-upstream-update
+          delete-branch: true
+          add-paths: seerr.spec
+          commit-message: 'chore: update Seerr to latest stable release'
+          title: 'chore: update Seerr to latest stable release'
+          body: |
+            Updates the RPM version from the upstream stable release API and resets Release to 1.
+            Review upstream runtime requirements and the RPM build results before merging.
+      # Dispatch explicitly so default-token PR builds run without a manual approval step.
+      - name: Test the update branch
+        if: contains(fromJSON('["created", "updated"]'), steps.pull-request.outputs.pull-request-operation)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run build-seerr-rpm.yml --ref chore/seerr-upstream-update
