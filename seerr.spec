@@ -1,5 +1,5 @@
 Name:           seerr
-Version:        3.5.0
+Version:        3.5.2
 Release:        1%{?dist}
 Summary:        Media request manager for Jellyfin, Plex, and Emby
 License:        MIT
