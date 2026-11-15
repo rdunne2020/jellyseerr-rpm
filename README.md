@@ -7,18 +7,18 @@ the package is architecture specific because several dependencies use native cod
 
 ## Build
 
-The CI matrix builds Fedora 42 and 43 on x86_64. Builds need network access to fetch
+The CI matrix builds Fedora 44 and 45 on x86_64. Builds need network access to fetch
 the upstream source archive and the dependencies in its frozen pnpm lockfile.
 Use a disposable Fedora environment with enough memory for a Next.js build.
 
 With [EarthBuild](https://www.earthbuild.dev/):
 
 ```sh
-earthly -a '+build-rpm/*.rpm' --FEDORA_VERSION=43
-earthly +test-rpm --FEDORA_VERSION=43
+earthly -a '+build-rpm/*.rpm' --FEDORA_VERSION=44
+earthly +test-rpm --FEDORA_VERSION=44
 ```
 
-Or inside a disposable Fedora 43 container, from this repository:
+Or inside a disposable Fedora 44 container, from this repository:
 
 ```sh
 dnf install -y rpm-build rpmdevtools dnf5-plugins systemd
@@ -37,7 +37,7 @@ dependencies. This is not an offline or Fedora distribution repository build.
 Install the binary RPM matching your Fedora version, then start the service:
 
 ```sh
-sudo dnf install ./seerr-3.5.0-1.fc43.x86_64.rpm
+sudo dnf install ./seerr-3.5.2-1.fc44.x86_64.rpm
 sudo systemctl enable --now seerr.service
 ```
 
