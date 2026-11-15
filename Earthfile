@@ -1,7 +1,7 @@
 VERSION 0.8
 
 rpm-builder:
-    ARG FEDORA_VERSION=43
+    ARG FEDORA_VERSION=44
     FROM fedora:${FEDORA_VERSION}
     RUN dnf install -y rpm-build rpmdevtools dnf5-plugins
     WORKDIR /seerr

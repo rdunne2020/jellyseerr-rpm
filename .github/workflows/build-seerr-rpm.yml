@@ -23,8 +23,8 @@ jobs:
         with:
           persist-credentials: false
       - run: python3 -m unittest discover -s tests -v
-      - run: bash -n scripts/build-rpm.sh tests/smoke-rpm.sh
-      - run: shellcheck scripts/build-rpm.sh tests/smoke-rpm.sh
+      - run: bash -n scripts/*.sh tests/smoke-rpm.sh
+      - run: shellcheck scripts/*.sh tests/smoke-rpm.sh
       - name: Validate GitHub Actions workflows
         run: >-
           docker run --rm -v "$PWD:/repo:ro" -w /repo
@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        fedora: [43, 44]
+        fedora: [44, 45]
     container: fedora:${{ matrix.fedora }}
     steps:
       - uses: actions/checkout@v4
@@ -71,11 +71,24 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
           pattern: seerr-fedora-*
           merge-multiple: true
           path: artifacts
+      - name: Sign and verify release packages
+        env:
+          RPM_SIGNING_PRIVATE_KEY: ${{ secrets.RPM_SIGNING_PRIVATE_KEY }}
+          RPM_SIGNING_PASSPHRASE: ${{ secrets.RPM_SIGNING_PASSPHRASE }}
+          RPM_SIGNING_KEY_FINGERPRINT: ${{ secrets.RPM_SIGNING_KEY_FINGERPRINT }}
+        run: |
+          docker run --rm \
+            -e RPM_SIGNING_PRIVATE_KEY -e RPM_SIGNING_PASSPHRASE -e RPM_SIGNING_KEY_FINGERPRINT \
+            -v "$PWD:/repo" -w /repo fedora:45 \
+            bash -c 'dnf install -y rpm-sign gnupg2 && bash scripts/sign-rpms.sh artifacts/*.rpm'
       - name: Publish tested RPMs
         env:
           GH_TOKEN: ${{ github.token }}
@@ -84,4 +97,4 @@ jobs:
           if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
           fi
-          gh release upload "$GITHUB_REF_NAME" artifacts/*.rpm --clobber
+          gh release upload "$GITHUB_REF_NAME" artifacts/*.rpm artifacts/RPM-GPG-KEY-seerr --clobber
