@@ -51,7 +51,8 @@ kill "$server_pid"
 wait "$server_pid" || true
 trap - EXIT
 printf '\n# smoke-test local setting\n' >> /etc/seerr/seerr.conf
-rpm -U --replacepkgs "$rpm_path"
+# Build artifacts are unsigned; release signing is verified separately.
+rpm -U --replacepkgs --nosignature "$rpm_path"
 grep -q 'smoke-test local setting' /etc/seerr/seerr.conf
 find /var/lib/seerr -name '*.sqlite*' -type f | grep -q .
 rpm -e seerr
