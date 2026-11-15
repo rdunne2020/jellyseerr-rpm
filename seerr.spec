@@ -1,5 +1,5 @@
 Name:           seerr
-Version:        3.5.0
+Version:        3.5.2
 Release:        1%{?dist}
 Summary:        Media request manager for Jellyfin, Plex, and Emby
 License:        MIT
@@ -54,7 +54,7 @@ rm -rf .next/cache
 %install
 install -d %{buildroot}%{_libdir}/%{name}
 # Keep the upstream runtime configuration alongside the compiled application.
-cp -a package.json next.config.ts seerr-api.yml node_modules dist public .next \
+cp -a package.json next.config.mjs seerr-api.yml node_modules dist public .next \
     %{buildroot}%{_libdir}/%{name}/
 printf '{"commitTag":"v%{version}"}\n' > %{buildroot}%{_libdir}/%{name}/committag.json
 ln -s %{_localstatedir}/cache/%{name} %{buildroot}%{_libdir}/%{name}/.next/cache
